@@ -1,3 +1,6 @@
+import { getName, setHighScore, getHighScore } from '/src/storage.js';
+import { submitScore } from '/src/supabaseClient.js';
+
 function solid(scene,key,color,w,h){
   if(scene.textures.exists(key))return;
   const g=scene.make.graphics({x:0,y:0,add:false});
@@ -5,23 +8,12 @@ function solid(scene,key,color,w,h){
   g.generateTexture(key,w,h); g.destroy();
 }
 
-// Balance más fácil
-const PLAYER_MAX_HP = 150;         // antes 100
-const IFRAME_MS     = 1200;        // antes 800 (invulnerable un poco más tras golpe)
-
-const DMG = { obst: 8, enemyBullet: 10 };  // antes 2 y 3
-
-const SPEED = {
-  road: 220,        // antes 240
-  enemy: 140,       // antes 150
-  obst: 160,        // antes 170
-  bullet: 520,
-  enemyBullet: 300  // antes 320
-};
-
-const ENEMY_FIRE_MIN = 1600;       // antes 1300
-const ENEMY_FIRE_MAX = 2200;       // antes 1800
-const SPAWN_MS       = 1000;       // antes 900
+// Balance suave
+const PLAYER_MAX_HP = 150;
+const IFRAME_MS     = 1200;
+const DMG = { obst: 8, enemyBullet: 10 };
+const SPEED = { road:220, enemy:140, obst:160, bullet:520, enemyBullet:300 };
+const ENEMY_FIRE_MIN = 1600, ENEMY_FIRE_MAX = 2200, SPAWN_MS = 1000;
 
 const SCALE={player:2.3,enemy:2.1,obst:2.1,bullet:1.6};
 const MUSIC_VOL=0.25;
@@ -39,13 +31,8 @@ export default class GameScene extends Phaser.Scene{
     const go=document.getElementById('go'); if(go) go.style.display='none';
     this.sys.game.canvas.style.pointerEvents='auto';
 
-    // fallbacks por si falta alguna imagen
-    solid(this,'player',0xff6a00,26,20);
-    solid(this,'police',0x3fa9f5,26,20);
-    solid(this,'obst',0xffcc00,28,18);
-    solid(this,'bullet',0xffffff,4,8);
-    solid(this,'enemyBullet',0xff5252,4,8);
-    solid(this,'line',0xffdd00,6,56);
+    ['player','police','obst','bullet','enemyBullet','line']
+      .forEach(k=>solid(this,k,0xffffff,20,20));
 
     this.music=this.sound.add('music',{loop:true,volume:MUSIC_VOL});
     if(!this.sound.locked)this.music.play();
@@ -98,14 +85,10 @@ export default class GameScene extends Phaser.Scene{
     bind('fire',v=>{ if(v) this.shoot(); });
     this.input.keyboard.on('keydown-SPACE',()=>this.shoot());
 
-    // Colisiones
     this.physics.add.overlap(this.player,this.obstacles,()=>this.hit(DMG.obst));
     this.physics.add.overlap(this.player,this.enemyBullets,()=>this.hit(DMG.enemyBullet));
-    this.physics.add.overlap(this.bullets,this.cops,(b,e)=>{
-      b.destroy(); e.health-=50; if(e.health<=0){ this.kills++; e.destroy(); }
-    });
+    this.physics.add.overlap(this.bullets,this.cops,(b,e)=>{ b.destroy(); e.health-=50; if(e.health<=0){ this.kills++; e.destroy(); }});
 
-    // Spawns más relajados
     this.time.addEvent({delay:SPAWN_MS,loop:true,callback:()=>this.spawnWave()});
   }
 
@@ -124,7 +107,6 @@ export default class GameScene extends Phaser.Scene{
   }
 
   spawnWave(){
-    // Solo 1 a la vez, a veces obstáculo, a veces policía
     const lane=Phaser.Math.Between(0,2);
     const x=this.lanes[lane], y=-Phaser.Math.Between(70,170);
     if(Math.random()<0.55) this.spawnEnemy(x,y); else this.spawnObst(x,y);
@@ -133,13 +115,11 @@ export default class GameScene extends Phaser.Scene{
   spawnEnemy(x,y){
     const e=this.cops.create(x,y,'police').setScale(SCALE.enemy);
     e.health=100; e.setVelocityY(SPEED.enemy);
-
-    // Dispara solo si está bien dentro de la pantalla para evitar “snipes” instantáneos
     e._fireEvt=this.time.addEvent({
       delay:Phaser.Math.Between(ENEMY_FIRE_MIN,ENEMY_FIRE_MAX), loop:true,
       callback:()=>{
         if(!e.active) return;
-        if(e.y < 80 || e.y > this.H-40) return;   // evita disparo fuera de zona visible útil
+        if(e.y < 80 || e.y > this.H-40) return;
         const b=this.enemyBullets.create(e.x,e.y+20,'enemyBullet').setScale(SCALE.bullet);
         b.setVelocityY(SPEED.enemyBullet);
       }
@@ -154,7 +134,7 @@ export default class GameScene extends Phaser.Scene{
   update(){
     if(this.gameOver) return;
 
-    this.score += 0.14;  // algo más lento
+    this.score += 0.14;
     this.hScore.setText('Score: '+Math.floor(this.score));
     this.hHP.setText('Vida: '+Math.max(0,Math.floor(this.hp)));
 
@@ -179,11 +159,23 @@ export default class GameScene extends Phaser.Scene{
     this.obstacles.children.each(o=>{ if(o.y>this.H+40) o.destroy(); });
   }
 
-  endRun(){
+  async endRun(){
     if(this.gameOver) return; this.gameOver=true;
     this.physics.pause(); if(this.music) this.music.stop();
 
-    const go=document.getElementById('go'), score=Math.floor(this.score);
+    const score = Math.floor(this.score);
+    // guarda récord local
+    setHighScore(score);
+
+    // envía al ranking global (no bloquea la UI si falla)
+    try {
+      const name = getName();
+      await submitScore(name, score);
+    } catch (e) {
+      console.warn('No se pudo enviar la puntuación global:', e?.message || e);
+    }
+
+    const go=document.getElementById('go');
     const goScore=document.getElementById('goScore');
     const btnMenu=document.getElementById('goMenu');
     const btnRetry=document.getElementById('goRetry');
@@ -208,11 +200,8 @@ export default class GameScene extends Phaser.Scene{
       document.getElementById('goMenu').addEventListener('click',()=>change(()=>this.scene.start('MenuScene')), { once:true });
       document.getElementById('goRetry').addEventListener('click',()=>change(()=>this.scene.restart()), { once:true });
     }else{
-      // Fallback
       if(confirm(`Tu score: ${score}\n¿Volver al menú?`)) this.scene.start('MenuScene');
       else this.scene.restart();
     }
   }
 }
-
-
