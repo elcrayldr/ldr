@@ -7,10 +7,10 @@ export default class MenuScene extends Phaser.Scene {
     this.sys.game.canvas.style.pointerEvents='auto';
 
     const W=this.scale.width, H=this.scale.height, CX=W/2;
-
     this.add.rectangle(CX,H/2,W,H,0x000000);
-    this.add.text(CX,H*0.23,'CRAY LDR – GTA Las Viñas',{
-      fontFamily:'Courier',fontStyle:'bold',fontSize:Math.round(W*0.058)+'px',color:'#ffcc00'
+
+    this.add.text(CX,H*0.22,'CRAY LDR – GTA Las Viñas',{
+      fontFamily:'Courier',fontStyle:'bold',fontSize:Math.round(W*0.06)+'px',color:'#ffcc00'
     }).setOrigin(0.5);
     this.add.text(CX,H*0.29,'by La Zeta Music',{
       fontFamily:'Courier',fontSize:Math.round(W*0.03)+'px',color:'#bbb'
@@ -18,29 +18,37 @@ export default class MenuScene extends Phaser.Scene {
 
     const name=localStorage.getItem('playerName')||'Cray';
     const hi=localStorage.getItem('highScore')||0;
-    const info=this.add.text(CX,H*0.38,`Jugador: ${name}\nRécord: ${hi}`,{
-      fontFamily:'Courier',fontSize:Math.round(W*0.032)+'px',color:'#ffee99',align:'center'
+    const info=this.add.text(CX,H*0.37,`Jugador: ${name}\nRécord: ${hi}`,{
+      fontFamily:'Courier',fontSize:Math.round(W*0.033)+'px',color:'#ffee99',align:'center'
     }).setOrigin(0.5);
 
-    const makeBtn=(y,label,cb)=>{
-      const f=Math.round(W*0.045);
-      const t=this.add.text(0,0,label,{fontFamily:'Courier',fontStyle:'bold',fontSize:f+'px',color:'#000'});
-      const w=t.width+40,h=t.height+20;
-      const bg=this.add.rectangle(0,0,w,h,0xffffff).setStrokeStyle(2,0x222222,0.25);
-      const c=this.add.container(CX,y,[bg,t]).setSize(w,h).setInteractive({
-        hitArea:new Phaser.Geom.Rectangle(-w/2,-h/2,w,h),
-        hitAreaCallback:Phaser.Geom.Rectangle.Contains,useHandCursor:true
-      });
-      c.on('pointerdown',()=>cb());
+    const makeBigButton=(y,label,cb)=>{
+      const f=Math.round(W*0.05);
+      const btnW=Math.max(W*0.72, 280);
+      const btnH=Math.max(f+28, 64);
+
+      const bg=this.add.rectangle(CX,y,btnW,btnH,0xffffff,1)
+        .setStrokeStyle(2,0x222222,0.3)
+        .setInteractive({ useHandCursor:true });
+
+      const t=this.add.text(CX,y,label,{
+        fontFamily:'Courier',fontStyle:'bold',fontSize:f+'px',color:'#000'
+      }).setOrigin(0.5);
+
+      let armed=false;
+      bg.on('pointerdown', ()=> armed=true);
+      bg.on('pointerup',   ()=> { if(armed) cb(); armed=false; });
+      bg.on('pointerout',  ()=> { armed=false; });
     };
 
-    makeBtn(H*0.52,'▶ JUGAR',()=>this.scene.start('GameScene'));
-    makeBtn(H*0.64,'👤 CAMBIAR NOMBRE',()=>{
-      const n=prompt('Tu nombre:',name);
-      if(n){localStorage.setItem('playerName',n);info.setText(`Jugador: ${n}\nRécord: ${hi}`);}
+    makeBigButton(H*0.52,'▶ JUGAR', ()=> this.scene.start('GameScene'));
+    makeBigButton(H*0.64,'👤 CAMBIAR NOMBRE', ()=>{
+      const n=prompt('Tu nombre:', name);
+      if(n){ localStorage.setItem('playerName',n); info.setText(`Jugador: ${n}\nRécord: ${hi}`); }
     });
-    makeBtn(H*0.76,'🏆 TOP 10',()=>alert('Ranking global pronto disponible.'));
+    makeBigButton(H*0.76,'🏆 TOP 10', ()=> alert('Ranking global pronto disponible.'));
   }
 }
+
 
 
