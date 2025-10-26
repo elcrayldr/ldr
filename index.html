@@ -14,8 +14,7 @@
     #touch{position:fixed;inset:0;z-index:20;pointer-events:none}
     .btn{position:absolute;bottom:40px;width:96px;height:84px;border-radius:12px;
       border:2px solid #ffffff33;background:#111a;color:#fff;display:flex;align-items:center;
-      justify-content:center;font:700 18px/1 system-ui,monospace;pointer-events:auto;
-      -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+      justify-content:center;font:700 18px/1 system-ui,monospace;pointer-events:auto}
     #left{left:20px} #right{right:20px} #fire{left:50%;transform:translateX(-50%);width:160px}
     #go{position:fixed;inset:0;display:none;z-index:30;background:rgba(0,0,0,.82);
         color:#fff;align-items:center;justify-content:center}
@@ -29,14 +28,12 @@
   </style>
 </head>
 <body>
-  <!-- Controles móviles -->
   <div id="touch">
     <div id="left" class="btn">←</div>
     <div id="fire" class="btn">FIRE</div>
     <div id="right" class="btn">→</div>
   </div>
 
-  <!-- Overlay HTML para GAME OVER -->
   <div id="go">
     <div class="box">
       <h1>GAME OVER</h1>
@@ -49,9 +46,6 @@
   </div>
 
   <script defer src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
-  <script type="module">import '/src/main.js?v=1006';</script>
+  <script type="module" src="/src/main.js?v=1010"></script>
 </body>
 </html>
-
-
-
