@@ -7,41 +7,34 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <title>Cray LDR - GTA Las Viñas</title>
+  <title>Cray LDR – GTA Las Viñas</title>
   <style>
     html,body{margin:0;height:100%;background:#000;overflow:hidden}
     canvas{display:block;image-rendering:pixelated}
-
-    /* Controles táctiles durante el juego */
     #touch{position:fixed;inset:0;z-index:20;pointer-events:none}
     .btn{position:absolute;bottom:40px;width:96px;height:84px;border-radius:12px;
       border:2px solid #ffffff33;background:#111a;color:#fff;display:flex;align-items:center;
       justify-content:center;font:700 18px/1 system-ui,monospace;pointer-events:auto;
       -webkit-tap-highlight-color:transparent;touch-action:manipulation}
-    #left{left:20px} #right{right:20px}
-    #fire{left:50%;transform:translateX(-50%);width:160px}
-
-    /* Overlay de GAME OVER (HTML por encima del canvas) */
-    #go{position:fixed;inset:0;display:none;z-index:30;
-        background:rgba(0,0,0,.82);color:#fff;align-items:center;justify-content:center}
+    #left{left:20px} #right{right:20px} #fire{left:50%;transform:translateX(-50%);width:160px}
+    #go{position:fixed;inset:0;display:none;z-index:30;background:rgba(0,0,0,.82);
+        color:#fff;align-items:center;justify-content:center}
     #go .box{width:min(520px,90vw);text-align:center}
     #go h1{margin:0 0 8px;font:700 44px/1 'Courier New',monospace;color:#ff1a1a}
     #go p{margin:0 0 24px;font:700 26px/1.2 'Courier New',monospace}
     #go .row{display:flex;gap:16px;flex-direction:column;align-items:center}
     #go button{cursor:pointer;min-width:240px;padding:14px 20px;border-radius:10px;border:2px solid #111;
       background:#fff;color:#000;font:700 22px/1 'Courier New',monospace}
-    @media (pointer:fine){ #touch{display:none;} }
+    @media(pointer:fine){#touch{display:none}}
   </style>
 </head>
 <body>
-  <!-- Controles móviles -->
   <div id="touch">
     <div id="left" class="btn">←</div>
     <div id="fire" class="btn">FIRE</div>
     <div id="right" class="btn">→</div>
   </div>
 
-  <!-- Overlay HTML para GAME OVER -->
   <div id="go">
     <div class="box">
       <h1>GAME OVER</h1>
@@ -53,13 +46,9 @@
     </div>
   </div>
 
-  <!-- Phaser -->
   <script defer src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
-
-  <!-- Import del juego (ruta ABSOLUTA + cache-busting) -->
-  <script type="module">
-    import '/src/main.js?v=1003';
-  </script>
+  <script type="module">import '/src/main.js?v=1005';</script>
 </body>
 </html>
+
 
