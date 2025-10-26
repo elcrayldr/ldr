@@ -1,18 +1,18 @@
-// Almacenamiento simple en localStorage
-const KEY_NAME = 'crayrunner_name';
-const KEY_HS   = 'crayrunner_highscore';
+// src/storage.js
+const KEY_NAME = 'playerName';
+const KEY_HI   = 'highScore';
 
-export function getName(){
-  const n = localStorage.getItem(KEY_NAME);
-  return n && n.trim() ? n.trim() : null;
+export function getName() {
+  return localStorage.getItem(KEY_NAME) || 'Cray';
 }
-export function setName(name){
-  localStorage.setItem(KEY_NAME, String(name).slice(0,16));
+export function setName(n) {
+  if (n) localStorage.setItem(KEY_NAME, n);
 }
-export function getHighScore(){
-  return Number(localStorage.getItem(KEY_HS) || 0);
+
+export function getHighScore() {
+  return Number(localStorage.getItem(KEY_HI) || 0);
 }
-export function setHighScore(score){
-  const best = getHighScore();
-  if(score > best) localStorage.setItem(KEY_HS, String(score));
+export function setHighScore(score) {
+  const hi = getHighScore();
+  if (score > hi) localStorage.setItem(KEY_HI, String(score));
 }
